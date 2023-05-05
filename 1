@@ -1,0 +1,202 @@
+#include <Windows.h>
+#include <iostream>
+using namespace std;
+struct peop {
+    char date[100];
+    int kod;
+    int tarif;
+    int time;
+    char gorod[100];
+    char nomer1[7];
+    char nomer2[7];
+}zap;
+FILE* fz, * ft;
+int input(const char* nazv);
+void throwex();
+void Out(peop z);
+void IndivOut(int kod, int bytesize);
+int main()
+{
+    SetConsoleCP(1251);
+    SetConsoleOutputCP(1251);
+    int bytesize = sizeof(peop);
+    int k = 1;
+    peop* razg = new peop[k];
+    char File_Rez[] = "rezult.txt";
+    while (true) {
+        printf("1 - Редактировать существующий файл или создать новый\n2 - Удалить файл\n3 - Выход\n");
+        int choosem, len = 0;
+        char* a;
+        char tempfile[256];
+        while (scanf_s("%i", &choosem) != 1)
+            while (getchar() != '\n')
+                continue;
+        rewind(stdin);
+        switch (choosem) {
+        case 1:
+            printf("Введите название файла которое хотите использовать\n");
+            system("dir *.dat /b");
+            rewind(stdin);
+            gets_s(tempfile);
+            while (true) {
+                bool cmp = false, flag = false;
+                int choose, count = 0, y = 0, cou = 0, datarewrite = 0;
+                char tempfio[200];
+                printf("\n1-Создание файла\n2-Показ\n3-Редактирование\n4-Выполнение индив задания\n5-Выход\n");
+                while (scanf_s("%i", &choose) != 1)
+                    while (getchar() != '\n')
+                        continue;
+                switch (choose) {
+                case 1:
+                    if (fopen_s(&fz, tempfile, "wb") != 0)
+                        throwex();
+                    fclose(fz);
+                    printf("\nСоздан новый файл %s !\n", tempfile);
+                    break;
+                case 2:
+                    if (fopen_s(&fz, tempfile, "rb") != 0)
+                        throwex();
+                    printf("\n\t--------- Информация ---------\n");
+                    if (fopen_s(&ft, File_Rez, "w") != 0)
+                        throwex();
+                    fprintf(ft, "\n\t--------- Информация ---------");
+                    while (fread(&zap, bytesize, 1, fz))
+                        Out(zap);
+                    _fcloseall();
+                    break;
+                case 3:
+                    printf("1-Новый профиль 2-Редактирование\n");
+                    while (scanf_s("%i", &choose) != 1)
+                        while (getchar() != '\n')
+                            continue;
+                    rewind(stdin);
+                    switch (choose) {
+                    case 1:
+                        _fcloseall();
+                        fopen_s(&fz, tempfile, "ab");
+                        printf("Дата ");
+                        gets_s(zap.date);
+                        rewind(stdin);
+                        printf("Город ");
+                        gets_s(zap.gorod);
+                        rewind(stdin);
+                        zap.kod = input("код города ");
+                        rewind(stdin);
+                        printf("Первый номер ");
+                        gets_s(zap.nomer1);
+                        rewind(stdin);
+                        zap.tarif = input("тариф");
+                        rewind(stdin);
+                        printf("Второй номер ");
+                        gets_s(zap.nomer2);
+                        zap.time = input("время разговора");
+                        k++;
+                        fwrite(&zap, bytesize, 1, fz);
+                        fclose(fz);
+                        break;
+                    case 2:
+                        printf("Введите номер звонки которого вы хотите отредактировать\n");
+                        gets_s(tempfio);
+                        if (fopen_s(&fz, tempfile, "rb") != 0)
+                            throwex();
+                        while (fread(&zap, bytesize, 1, fz)) {
+                            datarewrite++;
+                            for (int i = 0; zap.nomer1[i] != '\0'; i++) {
+                                cou = i;
+                                if (zap.nomer1[i] == tempfio[i])
+                                    y++;
+                            }
+                            if (y - 1 == cou) {
+                                cmp = true;
+                            }
+                            else {
+                                cou = false;
+                            }
+                            y = 0;
+                            if (cmp) {
+                                printf("Выберите что хотите перезаписать\n1-Номер звонившего\n2-Номер абонента\n3-Код\n4-Время\n5-тариф\n6-город\n");
+                                while (scanf_s("%i", &choose) != 1)
+                                    while (getchar() != '\n')
+                                        continue;
+                                rewind(stdin);
+                                switch (choose) {
+                                case 1:
+                                    printf("Номер звонившего:");
+                                    gets_s(zap.nomer1);
+                                    break;
+
+                                case 2:
+                                    printf("Номер абонента:");
+                                    gets_s(zap.nomer2);
+                                    break;
+                                case 3:
+                                    zap.kod = input("код ");
+                                    break;
+                                case 4:
+                                    zap.time = input("время ");
+                                    break;
+                                case 5:
+                                    zap.tarif = input("тариф ");
+                                    break;
+
+                                case 6:
+                                    printf("город:");
+                                    gets_s(zap.gorod);
+                                    break;
+                                default:
+                                    printf("Неверный ввод");
+                                }
+
+                                _fcloseall();
+                                fopen_s(&fz, tempfile, "r+b");
+                                fseek(fz, (datarewrite - 1) * bytesize, 0);
+                                fwrite(&zap, bytesize, 1, fz);
+                                fclose(fz);
+                            }
+                        }
+                        _fcloseall();
+                    }
+                    break;
+                case 4: {
+                    if (fopen_s(&fz, tempfile, "rb") != 0) {
+                        throwex();
+                    }
+                      int tempgorod;
+                      printf("Введите  код города для которого вы хотите вывести информацию");
+                      cin >> tempgorod;
+                      IndivOut(tempgorod, 224);
+                      fclose(fz);
+                }
+                    break;
+                case 5:
+                    flag = true;
+                    break;
+                default:
+                    printf("Неверный выбор");
+                }
+                if (flag)
+                    break;
+            }
+            break;
+        case 2:
+            printf("Введите название файла которое хотите удалить\n");
+            system("dir *.dat /b");
+            gets_s(tempfile);
+            while (tempfile[len] != '\0')
+                len++;
+            a = new char[len];
+            a[0] = 'd';
+            a[1] = 'e';
+            a[2] = 'l';
+            a[3] = ' ';
+            for (int i = 4; i < len + 4; i++)
+                a[i] = tempfile[i - 4];
+            system(a);
+            break;
+        case 3:
+            exit(0);
+            break;
+        default:
+            printf("Неверный пункт\n");
+        }
+    }
